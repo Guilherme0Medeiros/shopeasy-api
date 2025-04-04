@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Produto, Carrinho, ItemCarrinho, Pedido
+from shop.models import Produto, Carrinho, ItemCarrinho, Pedido
+
 
 
 class ProdutoSerializer(serializers.ModelSerializer):
@@ -57,13 +58,24 @@ class PedidoSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         usuario = validated_data['usuario']
 
-        # Busca o carrinho do usuário
+       
         carrinho, _ = Carrinho.objects.get_or_create(usuario=usuario)
 
-        # Calcula o preço total
+        
         preco_total = sum(item.produto.preco * item.quantidade for item in carrinho.itens.all())
+  
+        for item in carrinho.itens.all():
+            produto = item.produto
+            if produto.estoque < item.quantidade:
+                raise serializers.ValidationError(
+                    f"Estoque insuficiente para o produto: {produto.nome}"
+                )
+            produto.estoque -= item.quantidade
+            produto.save()
 
-        # Cria o pedido com o preço total já definido
+
+
+        
         pedido = Pedido.objects.create(
             usuario=usuario,
             preco_total=preco_total,

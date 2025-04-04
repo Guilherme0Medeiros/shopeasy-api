@@ -1,5 +1,5 @@
 from rest_framework import viewsets
-from .models import Produto, Carrinho, ItemCarrinho, Pedido
+from shop.models import Produto, Carrinho, ItemCarrinho, Pedido
 from .serializers import ProdutoSerializer, CarrinhoSerializer, ItemCarrinhoSerializer, PedidoSerializer
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
@@ -34,7 +34,7 @@ class CarrinhoViewSet(viewsets.ModelViewSet):
         if not produto_id:
             return Response({"error": "Produto é obrigatório."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Verifica se o item já está no carrinho
+        #verifica se o item ja esta no carrinho
         item, created = ItemCarrinho.objects.get_or_create(
             carrinho=carrinho, produto_id=produto_id,
             defaults={"quantidade": quantidade}
@@ -45,31 +45,38 @@ class CarrinhoViewSet(viewsets.ModelViewSet):
             item.quantidade += quantidade
             item.save()
 
-        #Atualizar o preço total após adicionar
         carrinho.atualizar_preco_total()
 
         return Response({"message": "Item adicionado ao carrinho."}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['delete'], url_path='remover-item/(?P<produto_id>\d+)')
-    def remover_item(self, request, produto_id=None):
-        carrinho = Carrinho.objects.first()
+    @action(detail=False, methods=['delete'], url_path='remover-item')
+    def remover_item(self, request):
+        produto_id = request.data.get("produto")
+        quantidade = request.data.get("quantidade", 1)
 
+        if not produto_id:
+            return Response({"error": "ID do produto é obrigatório."}, status=status.HTTP_400_BAD_REQUEST)
+
+        carrinho = Carrinho.objects.first()  
         if not carrinho:
             return Response({"error": "Nenhum carrinho encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-        item = carrinho.itemcarrinho_set.filter(produto_id=produto_id).first()
+        item = carrinho.itens.filter(produto_id=produto_id).first()
 
         if not item:
             return Response({"error": "Item não encontrado no carrinho."}, status=status.HTTP_404_NOT_FOUND)
 
-        if item.quantidade > 1:
-            item.quantidade -= 1
+        if item.quantidade > quantidade:
+            item.quantidade -= quantidade
             item.save()
         else:
             item.delete()
+
         carrinho.atualizar_preco_total()
 
         return Response({"message": "Item removido do carrinho."}, status=status.HTTP_200_OK)
+
+
 
 
 
@@ -88,7 +95,7 @@ class PedidoViewSet(viewsets.ModelViewSet):
         pedido.status = "pago"
         pedido.save()
         
-        # Excluir o carrinho associado ao pedido
+        #excluir o carrinho dps do pedido
         Carrinho.objects.filter(usuario=pedido.usuario).delete()
         
         return Response({'mensagem': 'Pagamento confirmado! Pedido marcado como pago.'}, status=status.HTTP_200_OK)
