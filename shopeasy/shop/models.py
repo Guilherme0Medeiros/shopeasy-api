@@ -17,7 +17,7 @@ class ModeloBase(models.Model):
         self.save()
 
 
-#Produto
+#produto
 class Produto(ModeloBase):
     nome = models.CharField(max_length=255)
     descricao = models.TextField()
