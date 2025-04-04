@@ -22,13 +22,11 @@ class CarrinhoViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['post'], url_path='adicionar-item')
     def adicionar_item(self, request):
-        # Busca sempre o primeiro carrinho
         carrinho = Carrinho.objects.first()
 
         if not carrinho:
             return Response({"error": "Nenhum carrinho encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Obtém os dados da requisição
         dados = request.data
         produto_id = dados.get("produto")
         quantidade = dados.get("quantidade", 1)
@@ -41,40 +39,34 @@ class CarrinhoViewSet(viewsets.ModelViewSet):
             carrinho=carrinho, produto_id=produto_id,
             defaults={"quantidade": quantidade}
         )
-
+        #aumenta a quantidade se ja existir
         if not created:
-            # Se já existe, apenas aumenta a quantidade
+            
             item.quantidade += quantidade
             item.save()
 
-        # ✅ Atualiza o preço total após adicionar
+        #Atualizar o preço total após adicionar
         carrinho.atualizar_preco_total()
 
         return Response({"message": "Item adicionado ao carrinho."}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['delete'], url_path='remover-item/(?P<produto_id>\d+)')
     def remover_item(self, request, produto_id=None):
-        # Busca sempre o primeiro carrinho
         carrinho = Carrinho.objects.first()
 
         if not carrinho:
             return Response({"error": "Nenhum carrinho encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Tenta encontrar o item no carrinho
         item = carrinho.itemcarrinho_set.filter(produto_id=produto_id).first()
 
         if not item:
             return Response({"error": "Item não encontrado no carrinho."}, status=status.HTTP_404_NOT_FOUND)
 
-        # Se a quantidade for maior que 1, apenas reduz 1
         if item.quantidade > 1:
             item.quantidade -= 1
             item.save()
         else:
-            # Se a quantidade for 1, remove o item do carrinho
             item.delete()
-
-        # ✅ Atualiza o preço total após remover
         carrinho.atualizar_preco_total()
 
         return Response({"message": "Item removido do carrinho."}, status=status.HTTP_200_OK)
