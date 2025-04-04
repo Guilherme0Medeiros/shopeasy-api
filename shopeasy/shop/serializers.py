@@ -60,7 +60,7 @@ class PedidoSerializer(serializers.ModelSerializer):
         # Busca o carrinho do usuário
         carrinho, _ = Carrinho.objects.get_or_create(usuario=usuario)
 
-        # Calcula o preço total usando o related_name "itens"
+        # Calcula o preço total
         preco_total = sum(item.produto.preco * item.quantidade for item in carrinho.itens.all())
 
         # Cria o pedido com o preço total já definido
