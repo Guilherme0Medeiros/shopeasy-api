@@ -60,7 +60,7 @@ class Pedido(ModeloBase):
             ("pendente", "Pendente"),
             ("pago", "Pago"),
             ("enviado", "Enviado"),
-            ("entregue", "Entregue"),
+            ("entregue", "E/ntregue"),
         ],
         default="pendente",
     )
