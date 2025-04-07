@@ -6,9 +6,18 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 
+from rest_framework import status
+from rest_framework.response import Response
+
 class ProdutoViewSet(viewsets.ModelViewSet):
     queryset = Produto.objects.filter(excluido=False)
     serializer_class = ProdutoSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        produto = self.get_object()
+        produto.excluido = True
+        produto.save()
+        return Response({"detail": "Produto excluído com sucesso."}, status=status.HTTP_204_NO_CONTENT)
 
 
 class ItemCarrinhoViewSet(viewsets.ModelViewSet):
@@ -82,7 +91,7 @@ class CarrinhoViewSet(viewsets.ModelViewSet):
 
 
 class PedidoViewSet(viewsets.ModelViewSet):
-    queryset = Pedido.objects.all()
+    queryset = Pedido.objects.filter(excluido=False)
     serializer_class = PedidoSerializer
 
     @action(detail=True, methods=['post'])
@@ -100,3 +109,8 @@ class PedidoViewSet(viewsets.ModelViewSet):
         
         return Response({'mensagem': 'Pagamento confirmado! Pedido marcado como pago.'}, status=status.HTTP_200_OK)
 
+    def destroy(self, request, *args, **kwargs):
+        pedido = self.get_object()
+        pedido.excluido = True
+        pedido.save()
+        return Response({"detail": "Pedido excluído com sucesso."}, status=status.HTTP_204_NO_CONTENT)
