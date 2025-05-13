@@ -1,7 +1,9 @@
 # 🛍️ ShopEasy API
 
 ShopEasy é uma API RESTful desenvolvida com Django REST Framework para gerenciamento de um e-commerce. O sistema inclui funcionalidades como autenticação JWT, carrinho de compras, pedidos, produtos, e soft delete.
-
+# Tecnologias
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Django](https://img.shields.io/badge/Django-092E20?style=for-the-badge&logo=django&logoColor=white)
 ## 🚀 Funcionalidades
 
 - ✅ Cadastro, edição e exclusão (soft delete) de produtos
